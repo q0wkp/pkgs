@@ -1,0 +1,16 @@
+pkgname=zmx-bin
+pkgver=@@PKGVER@@
+pkgrel=1
+pkgdesc="Session persistence for terminal processes (fork with --min-window and session info)"
+arch=('x86_64')
+url="https://github.com/lutianyu2001/ZZZ_FORKED.zmx"
+license=('MIT')
+provides=('zmx')
+conflicts=('zmx' 'zmx-git')
+options=('!strip' '!debug')
+source=("zmx-@@VERSION@@-linux-x86_64.tar.gz::${url}/releases/download/@@TAG@@/zmx-@@VERSION@@-linux-x86_64.tar.gz")
+sha256sums=('@@SHA256_X86_64@@')
+
+package() {
+  install -Dm755 zmx "${pkgdir}/usr/bin/zmx"
+}
