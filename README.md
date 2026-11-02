@@ -24,7 +24,7 @@ SigLevel = Required DatabaseRequired
 Server = https://github.com/q0wkp/pkgs/releases/download/$arch
 ```
 
-Then `sudo pacman -Sy zmx-bin` installs it, and `sudo pacman -Syu` keeps it up to date.
+Then `sudo pacman -Syu <package>` installs a package from the list above, and `sudo pacman -Syu` keeps it up to date.
 
 ## Ubuntu and Debian
 
@@ -32,7 +32,7 @@ Install [Pacstall](https://pacstall.dev), then:
 
 ```bash
 pacstall -A https://github.com/q0wkp/pkgs/tree/main
-pacstall -I zmx-bin
+pacstall -I <package>
 pacstall -Up
 ```
 
@@ -41,14 +41,13 @@ packages are only as trustworthy as this repository.
 
 ## How it is published
 
-`scripts/sync.sh` compares the latest zmx and Zap releases with `versions/`. If one is newer, it builds or fetches the
-package, signs it, updates the pacman database in the `x86_64` release, regenerates the Pacstall files from
-`templates/`, and commits them. Other projects do the same from a `sync.sh` in their own `packaging/pkgs/` folder. Don't
-edit `arch/`, `packages/`, `packagelist` or `srclist` by hand.
+Each project has a `packaging/pkgs/` folder with a `sync.sh` and the recipes for both package managers. `sync.sh`
+compares the project's latest release with `versions/`. If it's newer, the script builds or fetches the package, signs
+it, updates the pacman database in the `x86_64` release, and commits the regenerated Pacstall files here. Don't edit
+`arch/`, `packages/`, `packagelist` or `srclist` by hand.
 
-These run on my own machine, and `scripts/pkgs-sync.cron` is the crontab for this one. Packages are signed with my
-personal GPG key, the one that signs my commits, so its passphrase has to be cached in gpg-agent. If it isn't, the run
-fails before anything is published.
+The scripts run on my own machine. Packages are signed with my personal GPG key, the one that signs my commits, so its
+passphrase has to be cached in gpg-agent. If it isn't, the run fails before anything is published.
 
 zmx's IPC can change between versions, so upgrading it on a machine with live sessions can leave them unreachable from
 the new client. Upgrade once those sessions can end.

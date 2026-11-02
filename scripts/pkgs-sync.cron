@@ -1,5 +1,0 @@
-# Not installed. To turn the sync on: crontab scripts/pkgs-sync.cron
-# Edit the path first if the checkout moves. flock stops runs from overlapping.
-PATH=/usr/local/bin:/usr/bin:/bin
-PKGS_NOTIFY_CMD=/home/suroot/.claude/scripts/notify.sh
-17 * * * * flock -n /tmp/q0wkp-pkgs-sync.lock /home/suroot/0WSB/polyrepo_zap/pkgs/scripts/sync.sh >> /home/suroot/.local/state/q0wkp-pkgs-sync.log 2>&1

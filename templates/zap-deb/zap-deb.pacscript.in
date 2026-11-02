@@ -1,9 +1,0 @@
-pkgname="zap-deb"
-gives="zap"
-pkgver="@@PKGVER@@"
-pkgdesc="Zap, a community fork of the Rust-based Warp terminal"
-url="https://github.com/q0wkp/zap"
-arch=('amd64')
-maintainer=("q0wkp <q0wkp@users.noreply.github.com>")
-source=("${url}/releases/download/@@TAG@@/@@DEB_ASSET@@")
-sha256sums=("@@SHA256_DEB@@")
