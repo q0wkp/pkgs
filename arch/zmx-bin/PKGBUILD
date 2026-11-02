@@ -5,6 +5,7 @@ pkgdesc="Session persistence for terminal processes (fork with --min-window and 
 arch=('x86_64')
 url="https://github.com/lutianyu2001/ZZZ_FORKED.zmx"
 license=('MIT')
+depends=()
 provides=('zmx')
 conflicts=('zmx' 'zmx-git')
 options=('!strip' '!debug')
