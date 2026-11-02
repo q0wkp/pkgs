@@ -225,6 +225,12 @@ record_and_push() {
   )
 }
 
+# Projects with their own packaging/pkgs/sync.sh share the database and this branch, so only one
+# sync on this machine runs at a time, and this checkout starts from their latest commit.
+exec 9> /tmp/q0wkp-pkgs.lock
+flock 9
+git -C "$ROOT" pull -q --ff-only origin main
+
 sync_zmx
 sync_zap
 [ ${#changed[@]} -gt 0 ] || exit 0

@@ -2,8 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A pacman repository and a Pacstall repository for my builds of
-[zmx](https://github.com/lutianyu2001/ZZZ_FORKED.zmx) and [Zap](https://github.com/q0wkp/zap).
+A pacman repository and a Pacstall repository for my own package builds.
 
 | Package | pacman | Pacstall | Notes |
 | --- | --- | --- | --- |
@@ -44,11 +43,12 @@ packages are only as trustworthy as this repository.
 
 `scripts/sync.sh` compares the latest zmx and Zap releases with `versions/`. If one is newer, it builds or fetches the
 package, signs it, updates the pacman database in the `x86_64` release, regenerates the Pacstall files from
-`templates/`, and commits them. Don't edit `arch/`, `packages/`, `packagelist` or `srclist` by hand.
+`templates/`, and commits them. Other projects do the same from a `sync.sh` in their own `packaging/pkgs/` folder. Don't
+edit `arch/`, `packages/`, `packagelist` or `srclist` by hand.
 
-It runs on my own machine, and `scripts/pkgs-sync.cron` is the crontab for it. Packages are signed with my personal
-GPG key, the one that signs my commits, so its passphrase has to be cached in gpg-agent. If it isn't, the run fails
-before anything is published.
+These run on my own machine, and `scripts/pkgs-sync.cron` is the crontab for this one. Packages are signed with my
+personal GPG key, the one that signs my commits, so its passphrase has to be cached in gpg-agent. If it isn't, the run
+fails before anything is published.
 
 zmx's IPC can change between versions, so upgrading it on a machine with live sessions can leave them unreachable from
 the new client. Upgrade once those sessions can end.
