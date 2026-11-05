@@ -1,5 +1,5 @@
 pkgname=zmx-bin
-pkgver=0.8.2.mod.1
+pkgver=0.8.2.mod.2
 pkgrel=1
 pkgdesc="Session persistence for terminal processes (fork with --min-window and session info)"
 arch=('x86_64')
@@ -9,9 +9,18 @@ depends=()
 provides=('zmx')
 conflicts=('zmx' 'zmx-git')
 options=('!strip' '!debug')
-source=("zmx-0.8.2-mod.1-linux-x86_64.tar.gz::${url}/releases/download/v0.8.2-mod.1/zmx-0.8.2-mod.1-linux-x86_64.tar.gz")
-sha256sums=('517953ba387fd982a2f5b37de1bc4bdd4ee8b052af20a590b8f667204a99c621')
+source=("zmx-0.8.2-mod.2-linux-x86_64.tar.gz::${url}/releases/download/v0.8.2-mod.2/zmx-0.8.2-mod.2-linux-x86_64.tar.gz")
+sha256sums=('a2d934ca09efaa923347e7d396f202a82d56cc94b365e3e8ba04a7cc4820bc6b')
 
 package() {
   install -Dm755 zmx "${pkgdir}/usr/bin/zmx"
+  # The license texts the archive carries: the project's, and those of what is built into it.
+  local f
+  for f in LICENSE* COPYING* NOTICE*; do
+    if [ -f "$f" ]; then install -Dm644 "$f" -t "${pkgdir}/usr/share/licenses/${pkgname}"; fi
+  done
+  if [ -d third-party ]; then
+    install -dm755 "${pkgdir}/usr/share/licenses/${pkgname}"
+    cp -r --no-preserve=ownership third-party "${pkgdir}/usr/share/licenses/${pkgname}/"
+  fi
 }
