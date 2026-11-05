@@ -3,14 +3,14 @@ pkgver=0.8.2.mod.2
 pkgrel=1
 pkgdesc="Session persistence for terminal processes (fork with --min-window and session info)"
 arch=('x86_64')
-url="https://github.com/lutianyu2001/ZZZ_FORKED.zmx"
+url="https://github.com/lutianyu2001/zmx"
 license=('MIT')
 depends=()
 provides=('zmx')
 conflicts=('zmx' 'zmx-git')
 options=('!strip' '!debug')
 source=("zmx-0.8.2-mod.2-linux-x86_64.tar.gz::${url}/releases/download/v0.8.2-mod.2/zmx-0.8.2-mod.2-linux-x86_64.tar.gz")
-sha256sums=('a2d934ca09efaa923347e7d396f202a82d56cc94b365e3e8ba04a7cc4820bc6b')
+sha256sums=('74eab0f961c6e93c8df7e1551e9cec0f8e1bab677a9622863791078152859f40')
 
 package() {
   install -Dm755 zmx "${pkgdir}/usr/bin/zmx"
