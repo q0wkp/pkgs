@@ -76,6 +76,11 @@ tap_name() { local owner=${TAP_REPO%%/*} repo=${TAP_REPO#*/}; echo "$owner/${rep
 setup_homebrew() {
   brew --version | head -1
   brew tap "$(tap_name)"
+  # As the README has every user do: a Homebrew that asks for tap trust trusts the formula it is
+  # told to install, but some versions then refuse to load another formula of the tap that this
+  # one's conflicts_with names (6.0.18 on the macos-26-intel image did; 7.0.11 doesn't). A
+  # Homebrew too old to know the command needs none.
+  brew trust "$(tap_name)" 2>/dev/null || true
   brew style "$(tap_name)"
 }
 

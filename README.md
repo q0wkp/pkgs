@@ -45,8 +45,13 @@ packages are only as trustworthy as this repository.
 With [Homebrew](https://brew.sh):
 
 ```bash
+brew tap q0wkp/tap
+brew trust q0wkp/tap
 brew install q0wkp/tap/<package>
 ```
+
+The first two are needed once. `brew trust` lets Homebrew load everything in the tap: without it some versions refuse
+a package that names another of the tap. A Homebrew too old to know the command says so and needs none.
 
 `brew upgrade` keeps it up to date, except apps that update themselves. The casks and formulae are in
 [q0wkp/homebrew-tap](https://github.com/q0wkp/homebrew-tap).
