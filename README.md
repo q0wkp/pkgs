@@ -7,7 +7,7 @@ tap, [q0wkp/homebrew-tap](https://github.com/q0wkp/homebrew-tap).
 
 | Package | pacman | Pacstall | Homebrew | From Git | Notes |
 | --- | --- | --- | --- | --- | --- |
-| zmx | `zmx-bin` | `zmx-bin` | — | — | x86_64 on pacman, amd64 and arm64 on Pacstall |
+| zmx | `zmx-bin` | `zmx-bin` | `zmx` | `zmx-git` | x86_64 on pacman, amd64 and arm64 on Pacstall, Apple silicon and Intel on macOS |
 | zap | `zap` | `zap-deb` | `zap-terminal` | — | x86_64 on Linux, Apple silicon and Intel on macOS |
 
 ## Arch Linux

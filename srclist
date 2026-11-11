@@ -26,3 +26,19 @@ pkgbase = zmx-bin
 	sha256sums_arm64 = c0bd4da8b60aaf21a8acf4bd6920a8f061f28cc667b19c24f58b4027fee377b4
 
 pkgname = zmx-bin
+---
+pkgbase = zmx-git
+	gives = zmx
+	pkgver = 0.8.2.mod.1.1+git
+	pkgdesc = Session persistence for terminal processes (fork with --min-window and session info) (built from Git)
+	url = https://github.com/lutianyu2001/zmx
+	arch = amd64
+	arch = arm64
+	maintainer = q0wkp <q0wkp@users.noreply.github.com>
+	makedepends = git
+	makedepends = curl
+	makedepends = jq
+	makedepends = xz-utils
+	source = https://github.com/lutianyu2001/zmx.git
+
+pkgname = zmx-git

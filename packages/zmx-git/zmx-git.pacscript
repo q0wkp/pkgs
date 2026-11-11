@@ -1,0 +1,52 @@
+pkgname="zmx-git"
+gives="zmx"
+# Pacstall adds ~git<commit> to it. With +git it stays above the release this file came with, so
+# that dpkg takes this package for newer than the released one it replaces.
+pkgver="0.8.2.mod.1.1+git"
+pkgdesc="Session persistence for terminal processes (fork with --min-window and session info) (built from Git)"
+url="https://github.com/lutianyu2001/zmx"
+arch=('amd64' 'arm64')
+maintainer=("q0wkp <q0wkp@users.noreply.github.com>")
+makedepends=("git" "curl" "jq" "xz-utils")
+# The first source is the repository Pacstall watches for new commits.
+source=("${url}.git")
+# Zig is downloaded, and downloads the project's dependencies while it builds.
+external_connection=true
+
+# The Zig the project builds with (minimum_zig_version in its build.zig.zon), into zig/: read at
+# each build, so the package follows the project to a new Zig by itself, and downloaded from
+# ziglang.org with the checksum it publishes.
+prepare() {
+  cd "${srcdir}"
+  local version platform release url sum
+  version=$(sed -nE 's/^ *\.minimum_zig_version = "(.*)",$/\1/p' zmx/build.zig.zon)
+  [ -n "$version" ] || { echo "zmx/build.zig.zon names no minimum_zig_version" >&2; return 1; }
+  platform=$(uname -m)-linux
+  release=$(curl -fsSL https://ziglang.org/download/index.json \
+    | jq -r --arg v "$version" --arg p "$platform" '.[$v][$p] | select(. != null) | "\(.tarball) \(.shasum)"')
+  [ -n "$release" ] || { echo "ziglang.org has no Zig $version for $platform" >&2; return 1; }
+  read -r url sum <<<"$release"
+  curl -fsSL -o zig.tar.xz "$url"
+  echo "$sum  zig.tar.xz" | sha256sum -c - >/dev/null
+  rm -rf zig
+  mkdir zig
+  tar -xJf zig.tar.xz -C zig --strip-components=1
+  rm zig.tar.xz
+}
+
+# As the releases are built, for musl, so the program is static. pkgver has no commit in it, so
+# the version the program reports gets the one it was built from.
+build() {
+  cd "${srcdir}/zmx"
+  ZIG_GLOBAL_CACHE_DIR="${srcdir}/zig-cache" "${srcdir}/zig/zig" build \
+    -Doptimize=ReleaseSafe -Dtarget="$(uname -m)-linux-musl" \
+    -Dversion="${pkgver}.$(git rev-parse --short=8 HEAD)"
+}
+
+package() {
+  cd "${srcdir}/zmx"
+  install -Dm755 zig-out/bin/zmx -t "${pkgdir}/usr/bin"
+  # The license texts a release's archive carries: the project's, and those of what is built in.
+  install -Dm644 LICENSE -t "${pkgdir}/usr/share/doc/${pkgname}"
+  cp -r --no-preserve=ownership packaging/third-party "${pkgdir}/usr/share/doc/${pkgname}/"
+}
