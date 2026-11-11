@@ -1,0 +1,7 @@
+# actionlint 1.7.12 doesn't know concurrency's queue key, which GitHub documents (sync.yml says why
+# it is there). Remove this once actionlint supports it (rhysd/actionlint#654).
+paths:
+  # A glob, so that it matches however the file is named on the command line (./, absolute).
+  "**/.github/workflows/sync.yml":
+    ignore:
+      - unexpected key "queue" for "concurrency" section

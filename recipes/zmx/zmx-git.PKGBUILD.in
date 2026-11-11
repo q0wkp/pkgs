@@ -1,0 +1,61 @@
+pkgname=zmx-git
+# pkgver() sets it at each build; as written it only names the release this file came with.
+pkgver=@@PKGVER@@.r0.g0000000
+pkgrel=1
+pkgdesc="Session persistence for terminal processes (fork with --min-window and session info) (built from Git)"
+arch=('x86_64')
+url="https://github.com/lutianyu2001/zmx"
+license=('MIT')
+depends=()
+makedepends=('git' 'jq')
+provides=('zmx')
+# The released package among them: pacman then offers to remove it for this one, in one step.
+conflicts=('zmx' 'zmx-bin')
+options=('!strip' '!debug')
+source=("zmx::git+${url}.git")
+sha256sums=('SKIP')
+
+# The latest release tag the branch has, the commits since and the commit: above that release.
+pkgver() {
+  cd "zmx"
+  git describe --long --tags --abbrev=7 --match 'v[0-9]*' \
+    | sed -E 's/^v//; s/-([0-9]+)-g([0-9a-f]+)$/.r\1.g\2/; s/[^0-9A-Za-z.]/./g'
+}
+
+# The Zig the project builds with (minimum_zig_version in its build.zig.zon), into zig/: read at
+# each build, so the package follows the project to a new Zig by itself, and downloaded from
+# ziglang.org with the checksum it publishes. Arch's own Zig may be another version.
+prepare() {
+  local version platform release url sum
+  version=$(sed -nE 's/^ *\.minimum_zig_version = "(.*)",$/\1/p' zmx/build.zig.zon)
+  [ -n "$version" ] || { echo "zmx/build.zig.zon names no minimum_zig_version" >&2; return 1; }
+  [ "$(cat zig/version 2>/dev/null)" != "$version" ] || return 0
+  platform=$(uname -m)-linux
+  release=$(curl -fsSL https://ziglang.org/download/index.json \
+    | jq -r --arg v "$version" --arg p "$platform" '.[$v][$p] | select(. != null) | "\(.tarball) \(.shasum)"')
+  [ -n "$release" ] || { echo "ziglang.org has no Zig $version for $platform" >&2; return 1; }
+  read -r url sum <<<"$release"
+  curl -fsSL -o zig.tar.xz "$url"
+  echo "$sum  zig.tar.xz" | sha256sum -c - >/dev/null
+  rm -rf zig
+  mkdir zig
+  tar -xJf zig.tar.xz -C zig --strip-components=1
+  rm zig.tar.xz
+  echo "$version" > zig/version
+}
+
+# As the releases are built, for musl, so the program is static; Zig downloads the project's
+# dependencies, into a cache kept beside the sources.
+build() {
+  cd "zmx"
+  ZIG_GLOBAL_CACHE_DIR="${srcdir}/zig-cache" "${srcdir}/zig/zig" build \
+    -Doptimize=ReleaseSafe -Dtarget=x86_64-linux-musl -Dversion="${pkgver}"
+}
+
+package() {
+  cd "zmx"
+  install -Dm755 zig-out/bin/zmx "${pkgdir}/usr/bin/zmx"
+  # The license texts a release's archive carries: the project's, and those of what is built in.
+  install -Dm644 LICENSE -t "${pkgdir}/usr/share/licenses/${pkgname}"
+  cp -r --no-preserve=ownership packaging/third-party "${pkgdir}/usr/share/licenses/${pkgname}/"
+}

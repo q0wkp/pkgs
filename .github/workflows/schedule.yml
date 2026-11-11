@@ -1,0 +1,48 @@
+name: Schedule
+
+# Runs the Sync workflow once a day for the recipes listed in the file scheduled, those whose project
+# doesn't ask for its package after a release (someone else's, or one without that job). The others
+# are left to their projects, and with none listed the run ends at once, without starting Sync.
+#
+# Each run also tells a check on healthchecks.io, whose ping URL is the secret
+# PKGS_HEALTHCHECK_URL, that it ran or failed, so a day without a run (GitHub turns off a
+# public repository's scheduled workflows after 60 days without activity) raises an alert.
+on:
+  schedule:
+    - cron: "17 5 * * *"
+
+permissions: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      # The run's own token can start a workflow_dispatch run, unlike the other events it causes.
+      actions: write
+    env:
+      PING_URL: ${{ secrets.PKGS_HEALTHCHECK_URL }}
+    steps:
+      - name: Check the health check's URL is set
+        run: |
+          if [ -z "$PING_URL" ]; then
+            echo "::error::PKGS_HEALTHCHECK_URL is not set: nothing raises an alert when this workflow stops running"
+            exit 1
+          fi
+      - name: Ask Sync to package the listed recipes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          recipes=$(gh api "repos/$GITHUB_REPOSITORY/contents/scheduled?ref=$GITHUB_SHA" \
+            -H 'Accept: application/vnd.github.raw' | sed '/^ *#/d' | xargs)
+          if [ -z "$recipes" ]; then
+            echo "No recipe is listed in scheduled, so there is nothing to do."
+            exit 0
+          fi
+          gh workflow run sync.yml -R "$GITHUB_REPOSITORY" -f packages="$recipes"
+      - name: Tell the health check it ran
+        run: curl -fsS -m 10 --retry 5 -o /dev/null "$PING_URL"
+      - name: Tell the health check it failed
+        if: failure() && env.PING_URL != ''
+        run: curl -fsS -m 10 --retry 5 -o /dev/null "$PING_URL/fail"

@@ -1,0 +1,11 @@
+pkgbase = zap-deb
+	gives = zap
+	pkgver = 2026.07.09.2.mod.1.1
+	pkgdesc = Zap, a community fork of the Rust-based Warp terminal
+	url = https://github.com/q0wkp/zap
+	arch = amd64
+	maintainer = q0wkp <q0wkp@users.noreply.github.com>
+	source = https://github.com/q0wkp/zap/releases/download/v2026.07.09.2-mod.1.1/zap_2026.07.09.2-mod.1.1_amd64.deb
+	sha256sums = 82d7b55d8c441b78c6a97ce9c5b5696e1592c4cf8d581881c9f6b94fa05ab2a4
+
+pkgname = zap-deb

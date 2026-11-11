@@ -1,0 +1,29 @@
+cask "zap-terminal" do
+  version "@@VERSION@@"
+
+  on_arm do
+    sha256 "@@SHA256_MAC_ARM64@@"
+
+    url "https://github.com/q0wkp/zap/releases/download/@@TAG@@/@@ASSET_MAC_ARM64@@"
+  end
+  on_intel do
+    sha256 "@@SHA256_MAC_X86_64@@"
+
+    url "https://github.com/q0wkp/zap/releases/download/@@TAG@@/@@ASSET_MAC_X86_64@@"
+  end
+
+  name "Zap"
+  desc "Community fork of the Warp terminal"
+  homepage "https://github.com/q0wkp/zap"
+
+  auto_updates true
+  conflicts_with cask: "zap"
+  depends_on :macos
+
+  app "Zap.app"
+
+  # The app isn't notarized, so Gatekeeper would refuse to open it.
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{appdir}}/Zap.app"]
+  end
+end

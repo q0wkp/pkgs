@@ -1,0 +1,4 @@
+# The recipes the Schedule workflow runs Sync for once a day: one key of recipes/ per line, for a
+# project that doesn't ask for its package after a release (someone else's, or the user's own
+# without that job). A project that asks needs no line here. Lines starting with # are comments;
+# with no key, the workflow does nothing.

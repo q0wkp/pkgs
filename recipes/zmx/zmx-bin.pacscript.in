@@ -1,0 +1,24 @@
+pkgname="zmx-bin"
+gives="zmx"
+pkgver="@@PKGVER@@"
+pkgdesc="Session persistence for terminal processes (fork with --min-window and session info)"
+url="https://github.com/lutianyu2001/zmx"
+arch=('amd64' 'arm64')
+maintainer=("q0wkp <q0wkp@users.noreply.github.com>")
+source_amd64=("${url}/releases/download/@@TAG@@/@@ASSET_X86_64@@")
+source_arm64=("${url}/releases/download/@@TAG@@/@@ASSET_AARCH64@@")
+sha256sums_amd64=("@@SHA256_X86_64@@")
+sha256sums_arm64=("@@SHA256_AARCH64@@")
+
+package() {
+  install -Dm755 "${srcdir}/zmx" -t "${pkgdir}/usr/bin"
+  # The license texts the archive carries: the project's, and those of what is built into it.
+  local f
+  for f in "${srcdir}"/LICENSE* "${srcdir}"/COPYING* "${srcdir}"/NOTICE*; do
+    if [ -f "$f" ]; then install -Dm644 "$f" -t "${pkgdir}/usr/share/doc/${pkgname}"; fi
+  done
+  if [ -d "${srcdir}/third-party" ]; then
+    install -dm755 "${pkgdir}/usr/share/doc/${pkgname}"
+    cp -r --no-preserve=ownership "${srcdir}/third-party" "${pkgdir}/usr/share/doc/${pkgname}/"
+  fi
+}

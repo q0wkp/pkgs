@@ -1,0 +1,68 @@
+name: Verify
+
+# Installs what this repository has published, as a user would, and checks it: pacman in Arch,
+# Pacstall on Ubuntu, and the Homebrew tap on macOS for Apple silicon and Intel. Run it by hand
+# after a publish. It needs no secrets and changes nothing here.
+on:
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: Recipes under recipes/, separated by spaces; empty for all
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  # In a fresh Arch container, pulled each time as the build's is: an old image's keyring rejects
+  # current packages.
+  pacman:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify
+        env:
+          PACKAGES: ${{ inputs.packages }}
+        run: |
+          docker run --rm --pull=always -v "$PWD:/work:ro" -w /work -e PACKAGES \
+            docker.io/library/archlinux:latest \
+            bash -c 'read -ra names <<<"$PACKAGES"; scripts/verify.sh pacman "${names[@]}"'
+
+  pacstall:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify
+        env:
+          PACKAGES: ${{ inputs.packages }}
+        run: |
+          read -ra names <<<"$PACKAGES"
+          scripts/verify.sh pacstall "${names[@]}"
+
+  homebrew:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-26, macos-26-intel]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify
+        env:
+          PACKAGES: ${{ inputs.packages }}
+        run: |
+          read -ra names <<<"$PACKAGES"
+          scripts/verify.sh homebrew "${names[@]}"

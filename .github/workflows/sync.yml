@@ -1,0 +1,104 @@
+name: Sync
+
+# Packages each project's latest release for pacman, Pacstall and the Homebrew tap, when a project's
+# release workflow asks for it with workflow_dispatch, or someone runs it. It has no schedule of its
+# own: schedule.yml runs it daily for the recipes listed in the file scheduled, those whose project
+# doesn't ask. It runs the scripts that scripts/sync.sh runs on a machine of one's own, so the two do
+# the same.
+on:
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: Recipes under recipes/, separated by spaces; empty for all
+        required: false
+        default: ""
+      force:
+        description: Rebuild even if versions/ already records the latest release
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# The pacman database is one file that every publish rewrites, so runs go one at a time. queue: max
+# keeps every run that waits: by default GitHub keeps only the latest one, cancelling the request of
+# a project that asked before it, and nothing would ask again. actionlint doesn't know the key yet
+# (rhysd/actionlint#654), so .github/actionlint.yaml ignores that one error.
+concurrency:
+  group: sync
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  # Runs the projects' builds, so it holds neither the signing key nor a token that can write.
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    outputs:
+      built: ${{ steps.build.outputs.built }}
+      failed: ${{ steps.build.outputs.failed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build
+        id: build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGES: ${{ inputs.packages }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          args=(--out "$RUNNER_TEMP/out")
+          [ "$FORCE" != true ] || args+=(--force)
+          read -ra names <<<"$PACKAGES"
+          scripts/build.sh "${args[@]}" "${names[@]}" || echo "failed=true" >> "$GITHUB_OUTPUT"
+
+      - if: steps.build.outputs.built == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: packages
+          path: ${{ runner.temp }}/out
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  # Signs and publishes. It runs no code from the projects, only this repository's scripts.
+  publish:
+    needs: build
+    if: needs.build.outputs.built == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: packages
+          path: ${{ runner.temp }}/out
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PKGS_SIGNING_KEY: ${{ secrets.PKGS_SIGNING_KEY }}
+          PKGS_SIGNING_PASSPHRASE: ${{ secrets.PKGS_SIGNING_PASSPHRASE }}
+          PKGS_TAP_DEPLOY_KEY: ${{ secrets.PKGS_TAP_DEPLOY_KEY }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          scripts/publish.sh "$RUNNER_TEMP/out"
+
+  # A recipe that failed to build leaves the others published, and fails the run here.
+  report:
+    needs: [build, publish]
+    if: ${{ !cancelled() && needs.build.outputs.failed == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - run: |
+          echo "::error::a recipe failed to build; its log is in the build job"
+          exit 1

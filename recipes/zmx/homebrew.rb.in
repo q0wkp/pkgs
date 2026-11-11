@@ -1,0 +1,42 @@
+class Zmx < Formula
+  desc "Session persistence for terminal processes"
+  homepage "https://github.com/lutianyu2001/zmx"
+  version "@@VERSION@@"
+  license "MIT"
+
+  on_macos do
+    on_arm do
+      url "https://github.com/lutianyu2001/zmx/releases/download/@@TAG@@/@@ASSET_MAC_ARM64@@"
+      sha256 "@@SHA256_MAC_ARM64@@"
+    end
+    on_intel do
+      url "https://github.com/lutianyu2001/zmx/releases/download/@@TAG@@/@@ASSET_MAC_X86_64@@"
+      sha256 "@@SHA256_MAC_X86_64@@"
+    end
+  end
+
+  on_linux do
+    on_arm do
+      url "https://github.com/lutianyu2001/zmx/releases/download/@@TAG@@/@@ASSET_AARCH64@@"
+      sha256 "@@SHA256_AARCH64@@"
+    end
+    on_intel do
+      url "https://github.com/lutianyu2001/zmx/releases/download/@@TAG@@/@@ASSET_X86_64@@"
+      sha256 "@@SHA256_X86_64@@"
+    end
+  end
+
+  # By its full name: another tap the user has may hold a formula of the same name.
+  conflicts_with "q0wkp/tap/zmx-git", because: "both install the zmx program"
+
+  def install
+    bin.install "zmx"
+    # The license texts of what is built into the program; Homebrew installs LICENSE itself.
+    pkgshare.install "third-party"
+    generate_completions_from_executable(bin/"zmx", "completions")
+  end
+
+  test do
+    assert_match "Usage: zmx", shell_output("#{bin}/zmx help")
+  end
+end
